@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+login/LoginRoot"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:background="@drawable/twitter_back">
+	<ImageView
+		android:id="@+login/twitter_image"
+		android:layout_gravity="center"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:src="@drawable/twitter_logo" />
+	<LinearLayout
+		android:id="@+login/contents"
+		android:layout_below="@login/twitter_image"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal">
+		<ImageView
+			android:id="@+login/twitter_tux"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginLeft="10dip"
+			android:src="@drawable/twitter_tux" />
+		<Button
+			android:id="@+login/LoginButton"
+			android:text="Login"
+			android:textStyle="bold"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginLeft="20dip"/>
+	</LinearLayout>
+</RelativeLayout>

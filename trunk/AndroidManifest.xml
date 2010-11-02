@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.twitter"
+	android:versionCode="1"
+	android:versionName="1.0">
+	<supports-screens
+		android:largeScreens="true" />
+	<application
+		android:icon="@drawable/twitter_icon"
+		android:label="@string/app_name">
+		
+		<!--	This is the main Login Page 	-->
+		<activity
+			android:name=".oauthConnect.Twitter_OAuth"
+			android:theme ="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+			<intent-filter>
+				<action
+					android:name="android.intent.action.MAIN" />
+				<category
+					android:name="android.intent.category.LAUNCHER" />
+				<category
+					android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+			<intent-filter>
+				<action
+					android:name="android.intent.action.VIEW" />
+				<category
+					android:name="android.intent.category.BROWSABLE" />
+				<category
+					android:name="android.intent.category.DEFAULT" />
+				<data
+					android:scheme="myapp"
+					android:host="mainactivity" />
+			</intent-filter>
+		</activity>
+		<!-- This is the activity to get the status timeLine of the friends	-->
+		<activity
+			android:name=".twitterEngine.TimeLine"
+			android:theme ="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+		</activity>
+		<service
+			android:name = ".Service.StatusUpdates">
+		</service>
+	</application>
+
+	<uses-permission
+		android:name="android.permission.INTERNET" />
+</manifest> 
