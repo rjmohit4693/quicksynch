@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.twitter.Service;
+package com.quicksynch.twitter.Service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -47,22 +47,18 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import com.twitter.data.Database;
-import com.twitter.oauthConnect.Oauth_Keys;
+import com.quicksynch.twitter.data.QuicksynchProvider;
+import com.quicksynch.twitter.data.QuicksynchProvider.TimelineHelper;
+import com.quicksynch.twitter.oauthConnect.Oauth_Keys;
 
-/*
- * Purpose: This class is the Service started from Twitter_OAuth activity 
- *          It contains the thread that continuously get friends status feeds from twitter
- * TODO:// Did some performance reviews and I found that it takes a lot of time in parsing the JSON objects
- *         We need to ofloads the API calls to a service outside this process. 
- *         Need to combine all the service providers parse calls in that process
- */
 public class StatusUpdates extends Service{
 	
 	private static final String FRIENDS_TIMELINE = "http://api.twitter.com/1/statuses/friends_timeline.json?page=";
+	private static final Uri TIMELINE_URI = TimelineHelper.CONTENT_URI;
 	private final static String consumerKey = Oauth_Keys.twitter_consumer_key;
 	private final static String consumerSecret = Oauth_Keys.twitter_consumer_secret;
 	private static final String TAG = "quicksynch";
@@ -73,10 +69,8 @@ public class StatusUpdates extends Service{
 	private updater updater;
 	private OAuthConsumer mConsumer = null;
 	private HttpClient client;
-	private Database dbhelper;
-	private SQLiteDatabase db;
 	private int pageNo = 1;
-
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -99,8 +93,6 @@ public class StatusUpdates extends Service{
 		schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 		ClientConnectionManager manager = new ThreadSafeClientConnManager(parameters, schReg);
 		client = new DefaultHttpClient(manager, parameters);
-		dbhelper = new Database(this);
-		db = dbhelper.getWritableDatabase();
 	}
 
 	@Override
@@ -121,9 +113,6 @@ public class StatusUpdates extends Service{
 		return null;
 	}
 	
-	/*
-	 * Purpose: This class represents the thread that will fetch all the status updates from users friends timeline
-	 */
 	class updater implements Runnable {
 		static final long DELAY = 30000L;
 		public void run() {
@@ -145,13 +134,14 @@ public class StatusUpdates extends Service{
 					JSONObject user = (JSONObject) jsoObj.get("user");
 					String name = user.getString("screen_name");
 					String text = jsoObj.getString("text");
-					String img_Url = user.getString("profile_image_url");
-					ContentValues val = Database.convertToContentValues(id, name, text, img_Url);
-					db.insertOrThrow("FRIENDS_TIMELINE", null, val);
-					//the values are inserted..
-					Intent intent = new Intent( "test" );
-					sendBroadcast(intent);
-					Log.d("StatusUpdate","Intent Sent");
+					String imgUrl = user.getString("profile_image_url");
+					ContentValues values = new ContentValues();
+					values.put("_id", id);
+					values.put("username", name);
+					values.put("status", text);
+					values.put("imgurl", imgUrl);
+					getContentResolver().insert(TimelineHelper.CONTENT_URI, values);
+					
 				}
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();

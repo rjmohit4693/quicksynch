@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package com.twitter.oauthConnect;
+package com.quicksynch.twitter.oauthConnect;
 
-/*
- * Purpose: This class holds the consumer user key and secret that we get when we register 
- *          an application on twitter
- * TODO:// Other service provider keys should also be placed here 
- */
 public class Oauth_Keys {
 	public static String twitter_consumer_key = "UXR1FyPhaKk0wcPdnqJZA";
 	public static String twitter_consumer_secret = "13iF8jxyDRQZ62zTmU05CWK4Uz3K2DyuglhqIHYBrPs";

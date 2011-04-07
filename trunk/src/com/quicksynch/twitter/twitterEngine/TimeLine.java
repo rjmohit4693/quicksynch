@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.twitter.twitterEngine;
+package com.quicksynch.twitter.twitterEngine;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedList;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -52,21 +56,26 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.twitter.R;
-import com.twitter.data.Database;
-import com.twitter.data.Friends_Timeline_Adapter;
-import com.twitter.oauthConnect.Oauth_Keys;
+import com.quicksynch.twitter.R;
+import com.quicksynch.twitter.data.QuicksynchProvider.TimelineHelper;
+import com.quicksynch.twitter.oauthConnect.Oauth_Keys;
 
 public class TimeLine extends Activity{
 	
@@ -83,19 +92,8 @@ public class TimeLine extends Activity{
 	private TextView charsLeft;
 	private int maxChars = 140;
 	private ListView timeLineList;
-	private Database db;
-	private SQLiteDatabase sqlDB;
-	public Cursor cursor;
-	public Friends_Timeline_Adapter adapter;
-	
-	private BroadcastReceiver receiver = new BroadcastReceiver() {
-	@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.d(TAG,"Received Intent");
-			cursor.requery();
-			adapter.notifyDataSetChanged();
-		}
-	};
+	private Cursor c;
+	private TimlineAdapter adapter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -105,8 +103,12 @@ public class TimeLine extends Activity{
 	}
 	
 	private void init() {
-		registerReceiver( receiver, new IntentFilter( "test" ) );
+		c = this.managedQuery(TimelineHelper.CONTENT_URI, new String[] {TimelineHelper.ID, TimelineHelper.USERNAME, 
+				TimelineHelper.STATUS, TimelineHelper.IMG_URL}, null, null, null);
 		timeLineList = (ListView) findViewById(R.twitterList.friendsTimeLine);
+		adapter = new TimlineAdapter(this, c);
+		timeLineList.setAdapter(adapter);
+		
 		prefs = getSharedPreferences(prefs_file, 0);
 		userKey = prefs.getString("userKey", null);
 		userSecret =  prefs.getString("userSecret", null);
@@ -159,13 +161,6 @@ public class TimeLine extends Activity{
 			}
 		});
 		
-		//set the adapter for the ListView
-		db = new Database(getApplicationContext());
-		sqlDB = db.getReadableDatabase();
-		cursor = sqlDB.query("FRIENDS_TIMELINE", null, null, null, null, null, "_id desc");
-		startManagingCursor(cursor);
-		adapter = new Friends_Timeline_Adapter(getApplicationContext(), cursor);
-		timeLineList.setAdapter(adapter);
 	}
 	
 	private HttpParams getparams() {
@@ -218,5 +213,60 @@ public class TimeLine extends Activity{
 			return obj;
 		}
 	}
+	
+	private class TimlineAdapter extends CursorAdapter{
+		private Context mContext;
+		private Cursor mCursor;
+		private LayoutInflater mInflater;
+		
+		public TimlineAdapter(Context context, Cursor c) {
+			super(context, c, true);
+			this.mContext = context;
+			this.mCursor = c;
+			mInflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
+		}
+		
+		@Override
+		public void bindView(View view, Context context, Cursor cursor) {
+			((TextView)view.findViewById(R.id.username)).setText(cursor.getString(cursor.getColumnIndex(TimelineHelper.USERNAME)));
+			((TextView)view.findViewById(R.id.status)).setText(cursor.getString(cursor.getColumnIndex(TimelineHelper.STATUS)));
+			final String url = cursor.getString(cursor.getColumnIndex(TimelineHelper.IMG_URL));
+			final ImageView img = (ImageView) view.findViewById(R.id.profile_pic);
+			
+			//fetching the image of the user in a separate thread using a softreference to the ImageView
+			new Thread() {
 
+				@Override
+				public void run() {
+					try {
+						URL imgUrl = new URL(url);
+						URLConnection conn = imgUrl.openConnection();
+						InputStream ip = conn.getInputStream();
+
+						BitmapDrawable bm = new BitmapDrawable(ip);
+						final Bitmap profilePic = bm.getBitmap();
+						
+						img.post(new Runnable() {
+
+							public void run() {
+								img.setImageBitmap(profilePic);
+							}
+						});
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
+			}.start();
+		}
+
+		@Override
+		public View newView(Context context, Cursor cursor, ViewGroup parent) {
+			return mInflater.inflate(R.layout.timeline_row, parent, false);
+		}
+		
+	}
+	
 }

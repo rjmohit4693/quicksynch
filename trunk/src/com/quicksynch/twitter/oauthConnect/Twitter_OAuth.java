@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.twitter.oauthConnect;
+package com.quicksynch.twitter.oauthConnect;
 
-import com.twitter.R;
+import com.quicksynch.twitter.R;
 import oauth.signpost.OAuth;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthProvider;
@@ -32,15 +32,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
-import com.twitter.Service.StatusUpdates;
-import com.twitter.twitterEngine.TimeLine;
-
-/*
- * Purpose: This is the main Activity which gets the request token and access token from the Twitter
- * 			Web server 
- * TODO:// Need to extract the OAUTH part into a separate engine so that it can be used by all services
- *         Need to create a threaded architecture for that 
- */
+import com.quicksynch.twitter.Service.StatusUpdates;
+import com.quicksynch.twitter.twitterEngine.TimeLine;
 
 public class Twitter_OAuth extends Activity implements OnClickListener{
 
