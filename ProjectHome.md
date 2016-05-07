@@ -1,0 +1,3 @@
+This android application provides a simplified and integrated interface so that the users can access multiple social networking sites using the same client.
+
+Phase 1: Currently we are working on developing a twitter client which will support all the features of twitter (except creating new accounts). Then support for providing bayesian based classification will be added. This will be useful for power users showing only tweets that are relevant to them.
